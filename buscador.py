@@ -190,17 +190,10 @@ def busqueda(query, text):
     corpus = text
     tokenized_corpus = [doc['abstract'].split(" ") for doc in corpus]
     bm25 = BM25Okapi(tokenized_corpus)
-    # <rank_bm25.BM25Okapi at 0x1047881d0>
 
-    import time
-    t0 = time.time()
-    #query = "symptoms"
     tokenized_query = query.lower().split(" ")
     print(tokenized_query)
-    # doc_scores = bm25.get_scores(tokenized_query)
 
     resultados = bm25.get_top_n(tokenized_query, corpus, n=20
-    t1 = time.time()
-    print(f'Searched records in {round(t1 - t0, 3)} seconds \n')
 
     return resultados
