@@ -164,7 +164,7 @@ def respuesta(question,text):
             print("Error")
         if contArtc == 1:
             contArtc = 0
-            if cont > 10:
+            if cont > 20:
                 break
         contArtc = contArtc + 1
     print("Art. Totales: ", contArtcTotal)
@@ -179,10 +179,6 @@ def busqueda(query, text):
     #query = "symptoms"
     tokenized_query = query.lower().split(" ")
     print(tokenized_query)
-    # doc_scores = bm25.get_scores(tokenized_query)
-
     resultados = bm25.get_top_n(tokenized_query, corpus, n=15)
-
-
     return resultados
 
