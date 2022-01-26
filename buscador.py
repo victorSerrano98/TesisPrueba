@@ -150,7 +150,7 @@ def respuesta(question,text):
                                            return_tensors='pt')  # Return pytorch tensors.
             #nlp({'question': question, 'context': res["abstract"]})
             # print(res["title"])
-            if x > 0.00:
+            if x > 0.50:
                 cont = cont + 1
 
                 titulo = res["title"]
@@ -179,7 +179,7 @@ def respuesta(question,text):
             print("Error")
         if contArtc == 1:
             contArtc = 0
-            if cont > 10:
+            if cont > 20:
                 break
         contArtc = contArtc + 1
     print("Art. Totales: ", contArtcTotal)
@@ -199,26 +199,8 @@ def busqueda(query, text):
     print(tokenized_query)
     # doc_scores = bm25.get_scores(tokenized_query)
 
-    resultados = bm25.get_top_n(tokenized_query, corpus, n=15)
+    resultados = bm25.get_top_n(tokenized_query, corpus, n=20
     t1 = time.time()
     print(f'Searched records in {round(t1 - t0, 3)} seconds \n')
 
     return resultados
-
-# pregunta = "¿Cuales son los sintomas del covid?"
-# trad = traductor(pregunta)
-# print(trad)
-# query = spa(trad)
-# print(query)
-# consulta = consultaAPI(query, 1)
-# print(consulta)
-#
-# output_dict = [x for x in consulta["data"] if x['abstract'] != None]
-# print("Hola")
-# txt = busqueda(query,output_dict)
-# print("Chau")
-# resp = respuesta(trad, txt)
-# print(len(txt))
-# print("Respuestas \n \n ")
-# for i in resp:
-#     print(i)
