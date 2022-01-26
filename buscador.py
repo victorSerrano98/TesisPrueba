@@ -9,13 +9,20 @@ import pandas as pd
 import spacy
 import requests
 
-
+#CARGA DE MODELO AJUSTADO
+# modelname = 'twmkn9/bert-base-uncased-squad2'
+# model = BertForQuestionAnswering.from_pretrained(modelname)
+# tokenizer = AutoTokenizer.from_pretrained(modelname)
 tokenizer = AutoTokenizer.from_pretrained("graviraja/covidbert_squad")
 model = AutoModelForQuestionAnswering.from_pretrained("graviraja/covidbert_squad")
+# config = BertConfig.from_json_file('C:/Users/Alexis/PycharmProjects/ModeloBERT/model/config.json')
+# tokenizer = AutoTokenizer.from_pretrained("C:/Users/Alexis/PycharmProjects/ModeloBERT/model/tokenizer/")
+# model = AutoModelForQuestionAnswering.from_pretrained("C:/Users/Alexis/PycharmProjects/ModeloBERT/model")
 
-
-
+#https://huggingface.co/twmkn9/bert-base-uncased-squad2
+#PARAMETROS DE LAS PREGUNTAS Y CONTEXTO QUE ABARCARA
 max_length = 512 # The maximum length of a feature (question and context)
+#doc_stride = 128 # The authorized overlap between two part of the context when splitting it is needed.
 
 #question_answerer = pipeline("question-answering")
 nlp = pipeline("question-answering", model=model, tokenizer=tokenizer)
@@ -30,6 +37,7 @@ def traductor(question):
 def spa(question):
     nlpSp = spacy.load("en_core_web_sm")
     preguntaFormt = " ".join(question.split())
+    query = ""
     print(preguntaFormt)
     doc = nlpSp(preguntaFormt)
     a = [token.dep_ for token in doc]
@@ -46,7 +54,8 @@ def spa(question):
         lexeme = nlpSp.vocab[word]
         if lexeme.is_stop == False:
             filtered_sentence.append(word)
-
+    #print(token_list)
+    #print(filtered_sentence)
     query = filtered_sentence
 
     my_stopwords = ['long', '?', '¿', '!', 'covid-19', 'covid', 'coronavirus', 'COVID-19', 'COVID19', 'covid19' 'SARS-COV2', 'SARS-COV 2', 'sarscov2', 'sars cov 2']
@@ -58,7 +67,7 @@ def spa(question):
         var = var + " " + "\"" + i + "\""
         #print(var)
 
-    var = var + " \"covid-19\""
+    var = var + " \"covid\""
     var = " ".join(var.split())
     print("formateada: ", var)
     return var
@@ -79,6 +88,8 @@ def consultaAPI(query, num):
             return None
     except:
         output_dict = [x for x in r["data"] if x['year'] == 2021]
+        #print(output_dict)
+
         return r
 
 def sp_Abstract(abstract):
@@ -88,6 +99,7 @@ def sp_Abstract(abstract):
     print(preguntaFormt)
     doc = nlpAbst(preguntaFormt)
     a = [token.dep_ for token in doc]
+    #print("Estructura Frase: ", a)
 
     # Create list of word tokens
     token_list = []
@@ -100,16 +112,19 @@ def sp_Abstract(abstract):
         lexeme = nlpAbst.vocab[word]
         if lexeme.is_stop == False:
             filtered_sentence.append(word)
-
+    #print(token_list)
+    #print(filtered_sentence)
     query = filtered_sentence
 
     my_stopwords = ['?', '¿', '!', '\n']
     tokens_filtered = [word for word in query if not word in my_stopwords]
+    #print("111: ", tokens_filtered)
     query = tokens_filtered
     var = ""
     for i in query:
         var = var + " " + i + " "
 
+    # print("RESUMEN CORREGIDO: ", var)
     return var
 
 
@@ -175,14 +190,35 @@ def busqueda(query, text):
     corpus = text
     tokenized_corpus = [doc['abstract'].split(" ") for doc in corpus]
     bm25 = BM25Okapi(tokenized_corpus)
+    # <rank_bm25.BM25Okapi at 0x1047881d0>
 
+    import time
+    t0 = time.time()
     #query = "symptoms"
     tokenized_query = query.lower().split(" ")
     print(tokenized_query)
     # doc_scores = bm25.get_scores(tokenized_query)
 
     resultados = bm25.get_top_n(tokenized_query, corpus, n=15)
-
+    t1 = time.time()
+    print(f'Searched records in {round(t1 - t0, 3)} seconds \n')
 
     return resultados
 
+# pregunta = "¿Cuales son los sintomas del covid?"
+# trad = traductor(pregunta)
+# print(trad)
+# query = spa(trad)
+# print(query)
+# consulta = consultaAPI(query, 1)
+# print(consulta)
+#
+# output_dict = [x for x in consulta["data"] if x['abstract'] != None]
+# print("Hola")
+# txt = busqueda(query,output_dict)
+# print("Chau")
+# resp = respuesta(trad, txt)
+# print(len(txt))
+# print("Respuestas \n \n ")
+# for i in resp:
+#     print(i)
