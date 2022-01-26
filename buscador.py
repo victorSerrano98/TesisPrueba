@@ -9,20 +9,13 @@ import pandas as pd
 import spacy
 import requests
 
-#CARGA DE MODELO AJUSTADO
-# modelname = 'twmkn9/bert-base-uncased-squad2'
-# model = BertForQuestionAnswering.from_pretrained(modelname)
-# tokenizer = AutoTokenizer.from_pretrained(modelname)
+
 tokenizer = AutoTokenizer.from_pretrained("graviraja/covidbert_squad")
 model = AutoModelForQuestionAnswering.from_pretrained("graviraja/covidbert_squad")
-# config = BertConfig.from_json_file('C:/Users/Alexis/PycharmProjects/ModeloBERT/model/config.json')
-# tokenizer = AutoTokenizer.from_pretrained("C:/Users/Alexis/PycharmProjects/ModeloBERT/model/tokenizer/")
-# model = AutoModelForQuestionAnswering.from_pretrained("C:/Users/Alexis/PycharmProjects/ModeloBERT/model")
 
-#https://huggingface.co/twmkn9/bert-base-uncased-squad2
-#PARAMETROS DE LAS PREGUNTAS Y CONTEXTO QUE ABARCARA
+
+
 max_length = 512 # The maximum length of a feature (question and context)
-#doc_stride = 128 # The authorized overlap between two part of the context when splitting it is needed.
 
 #question_answerer = pipeline("question-answering")
 nlp = pipeline("question-answering", model=model, tokenizer=tokenizer)
@@ -37,7 +30,6 @@ def traductor(question):
 def spa(question):
     nlpSp = spacy.load("en_core_web_sm")
     preguntaFormt = " ".join(question.split())
-    query = ""
     print(preguntaFormt)
     doc = nlpSp(preguntaFormt)
     a = [token.dep_ for token in doc]
@@ -54,8 +46,7 @@ def spa(question):
         lexeme = nlpSp.vocab[word]
         if lexeme.is_stop == False:
             filtered_sentence.append(word)
-    #print(token_list)
-    #print(filtered_sentence)
+
     query = filtered_sentence
 
     my_stopwords = ['long', '?', '¿', '!', 'covid-19', 'covid', 'coronavirus', 'COVID-19', 'COVID19', 'covid19' 'SARS-COV2', 'SARS-COV 2', 'sarscov2', 'sars cov 2']
@@ -67,7 +58,7 @@ def spa(question):
         var = var + " " + "\"" + i + "\""
         #print(var)
 
-    var = var + " \"covid\""
+    var = var + " \"covid-19\""
     var = " ".join(var.split())
     print("formateada: ", var)
     return var
@@ -88,8 +79,6 @@ def consultaAPI(query, num):
             return None
     except:
         output_dict = [x for x in r["data"] if x['year'] == 2021]
-        #print(output_dict)
-
         return r
 
 def sp_Abstract(abstract):
@@ -99,7 +88,6 @@ def sp_Abstract(abstract):
     print(preguntaFormt)
     doc = nlpAbst(preguntaFormt)
     a = [token.dep_ for token in doc]
-    #print("Estructura Frase: ", a)
 
     # Create list of word tokens
     token_list = []
@@ -112,19 +100,16 @@ def sp_Abstract(abstract):
         lexeme = nlpAbst.vocab[word]
         if lexeme.is_stop == False:
             filtered_sentence.append(word)
-    #print(token_list)
-    #print(filtered_sentence)
+
     query = filtered_sentence
 
     my_stopwords = ['?', '¿', '!', '\n']
     tokens_filtered = [word for word in query if not word in my_stopwords]
-    #print("111: ", tokens_filtered)
     query = tokens_filtered
     var = ""
     for i in query:
         var = var + " " + i + " "
 
-    # print("RESUMEN CORREGIDO: ", var)
     return var
 
 
@@ -150,7 +135,7 @@ def respuesta(question,text):
                                            return_tensors='pt')  # Return pytorch tensors.
             #nlp({'question': question, 'context': res["abstract"]})
             # print(res["title"])
-            if x > 0.50:
+            if x > 0.00:
                 cont = cont + 1
 
                 titulo = res["title"]
@@ -179,7 +164,7 @@ def respuesta(question,text):
             print("Error")
         if contArtc == 1:
             contArtc = 0
-            if cont > 20:
+            if cont > 10:
                 break
         contArtc = contArtc + 1
     print("Art. Totales: ", contArtcTotal)
@@ -191,9 +176,13 @@ def busqueda(query, text):
     tokenized_corpus = [doc['abstract'].split(" ") for doc in corpus]
     bm25 = BM25Okapi(tokenized_corpus)
 
+    #query = "symptoms"
     tokenized_query = query.lower().split(" ")
     print(tokenized_query)
+    # doc_scores = bm25.get_scores(tokenized_query)
 
-    resultados = bm25.get_top_n(tokenized_query, corpus, n=20
+    resultados = bm25.get_top_n(tokenized_query, corpus, n=15)
+
 
     return resultados
+
